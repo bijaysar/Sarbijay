@@ -1,721 +1,370 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ludo · quick play · share link</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-        }
-        body {
-            background: #1a2a32;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-            padding: 12px;
-        }
-        .game-container {
-            background: #0f1a1f;
-            border-radius: 2rem;
-            padding: 1.5rem 1.5rem 1.8rem;
-            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-            max-width: 700px;
-            width: fit-content;
-            margin: 0 auto;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.2rem;
-            color: #e9f1f5;
-            padding: 0 6px;
-        }
-        .header h1 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-            margin: 0;
-            background: linear-gradient(135deg, #fff6d5, #b8d9e8);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        .turn-indicator {
-            background: #243b44;
-            padding: 0.5rem 1.2rem;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: inset 0 -2px 0 #0b1418, 0 4px 8px rgba(0,0,0,0.4);
-            transition: 0.2s;
-        }
-        .turn-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #c0392b;
-            box-shadow: 0 0 10px currentColor;
-        }
-        .board-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        canvas {
-            display: block;
-            width: 100%;
-            height: auto;
-            border-radius: 28px;
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.7), inset 0 0 0 2px #3b5b6b;
-            background: #1e2f38;
-            cursor: pointer;
-            transition: transform 0.15s;
-            max-width: 580px;
-            margin: 0 auto;
-        }
-        canvas:active {
-            transform: scale(0.99);
-        }
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1.5rem;
-            gap: 16px;
-            flex-wrap: wrap;
-            padding: 0 4px;
-        }
-        .dice-area {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            background: #1c2d35;
-            padding: 0.5rem 1.2rem 0.5rem 1rem;
-            border-radius: 60px;
-            box-shadow: inset 0 -3px 0 #0b1418, 0 8px 12px rgba(0,0,0,0.4);
-        }
-        .dice-box {
-            width: 65px;
-            height: 65px;
-            background: #f5f5f5;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #1a1a1a;
-            box-shadow: 0 0 0 3px #2e4a56, 0 8px 0 #0b1418, 0 10px 15px rgba(0,0,0,0.5);
-            transition: 0.1s;
-            cursor: pointer;
-            text-shadow: 0 2px 2px rgba(0,0,0,0.15);
-            line-height: 1;
-        }
-        .dice-box.rolling {
-            animation: shake 0.15s infinite;
-            opacity: 0.9;
-        }
-        @keyframes shake {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(6deg); }
-            50% { transform: rotate(-6deg); }
-            75% { transform: rotate(3deg); }
-            100% { transform: rotate(0deg); }
-        }
-        .roll-btn {
-            background: #e1b12c;
-            border: none;
-            border-radius: 40px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            padding: 0.8rem 1.8rem;
-            color: #10181d;
-            letter-spacing: 0.5px;
-            box-shadow: 0 8px 0 #9e7e1f, 0 6px 12px black;
-            transition: 0.07s linear;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-        .roll-btn:active {
-            transform: translateY(5px);
-            box-shadow: 0 3px 0 #9e7e1f, 0 6px 12px black;
-        }
-        .roll-btn:disabled {
-            opacity: 0.4;
-            transform: translateY(4px);
-            box-shadow: 0 4px 0 #6b5415;
-            pointer-events: none;
-        }
-        .new-game-btn {
-            background: #3f5e6b;
-            border: none;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 1rem;
-            padding: 0.8rem 1.5rem;
-            color: white;
-            box-shadow: 0 6px 0 #1d2f37, 0 4px 10px black;
-            transition: 0.07s linear;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .new-game-btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #1d2f37, 0 4px 10px black;
-        }
-        .share-note {
-            color: #a7c0cb;
-            font-size: 0.8rem;
-            text-align: center;
-            margin-top: 0.8rem;
-            letter-spacing: 0.3px;
-            opacity: 0.9;
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-            align-items: center;
-        }
-        .share-note span {
-            background: #253e48;
-            padding: 4px 10px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            color: #cbdae2;
-        }
-        .winner-badge {
-            color: #ffd966;
-            font-weight: 700;
-            margin-left: 8px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ludo – 2 Player</title>
+<style>
+  * { box-sizing: border-box; user-select: none; }
+  body {
+    background: #1a2a32; margin: 0; min-height: 100vh;
+    display: flex; justify-content: center; align-items: center;
+    font-family: 'Segoe UI', sans-serif; padding: 12px;
+  }
+  .wrap {
+    background: #0f1a1f; border-radius: 24px; padding: 18px;
+    box-shadow: 0 20px 40px rgba(0,0,0,.6);
+    max-width: 640px; width: 100%;
+  }
+  h1 { color: #fff; margin: 0 0 12px; text-align: center; font-size: 1.6rem; letter-spacing: 3px; }
+  .status {
+    color: #fff; text-align: center; font-size: 1.1rem; font-weight: 600;
+    margin-bottom: 12px; padding: 10px; background: #243b44; border-radius: 30px;
+  }
+  .dot { display:inline-block; width:14px; height:14px; border-radius:50%; margin-right:8px; vertical-align:middle; }
+  canvas { display:block; width:100%; height:auto; border-radius:16px; background:#1e2f38; cursor:pointer; }
+  .bar { display:flex; gap:14px; align-items:center; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+  .dice {
+    width:64px; height:64px; background:#f5f5f5; border-radius:14px;
+    display:flex; align-items:center; justify-content:center; font-size:2.6rem;
+    font-weight:700; color:#111; box-shadow: 0 4px 0 #999;
+  }
+  .dice.rolling { animation: shake .12s infinite; }
+  @keyframes shake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(8deg)} 75%{transform:rotate(-8deg)} }
+  button {
+    border:none; border-radius:40px; padding:16px 28px; font-size:1rem;
+    font-weight:700; cursor:pointer; transition:.08s; text-transform:uppercase; letter-spacing:1px;
+  }
+  .roll { background:#e1b12c; color:#10181d; box-shadow:0 6px 0 #9e7e1f; }
+  .roll:active:not(:disabled) { transform:translateY(4px); box-shadow:0 2px 0 #9e7e1f; }
+  .roll:disabled { opacity:.4; pointer-events:none; }
+  .reset { background:#3f5e6b; color:#fff; box-shadow:0 6px 0 #1d2f37; }
+  .reset:active { transform:translateY(4px); box-shadow:0 2px 0 #1d2f37; }
+  .hint { color:#8fa8b3; text-align:center; font-size:.82rem; margin-top:10px; }
+</style>
 </head>
 <body>
-<div class="game-container">
-    <div class="header">
-        <h1>LUDO</h1>
-        <div class="turn-indicator" id="turnIndicator">
-            <span class="turn-dot" id="turnDot" style="background:#e74c3c;"></span>
-            <span id="turnText">Red's turn</span>
-        </div>
-    </div>
-
-    <div class="board-wrapper">
-        <canvas id="ludoCanvas" width="600" height="600"></canvas>
-    </div>
-
-    <div class="controls">
-        <div class="dice-area">
-            <div class="dice-box" id="diceBox">⚀</div>
-            <button class="roll-btn" id="rollBtn">ROLL</button>
-        </div>
-        <button class="new-game-btn" id="newGameBtn">⟳ New game</button>
-    </div>
-    <div class="share-note">
-        <span>🔗 Share this link with a friend to play</span>
-    </div>
+<div class="wrap">
+  <h1>LUDO</h1>
+  <div class="status" id="status"><span class="dot" id="dot" style="background:#e74c3c"></span><span id="statusText">Red's turn — roll the dice</span></div>
+  <canvas id="cv" width="600" height="600"></canvas>
+  <div class="bar">
+    <div class="dice" id="dice">⚀</div>
+    <button class="roll" id="rollBtn">Roll</button>
+    <button class="reset" id="resetBtn">New Game</button>
+  </div>
+  <div class="hint" id="hint">Roll a 6 to bring a token out of home.</div>
 </div>
 
 <script>
-    (function() {
-        // ----- LUDO GAME (simplified, 2 players: Red & Green, quick play) -----
-        const canvas = document.getElementById('ludoCanvas');
-        const ctx = canvas.getContext('2d');
-        const turnIndicator = document.getElementById('turnIndicator');
-        const turnDot = document.getElementById('turnDot');
-        const turnText = document.getElementById('turnText');
-        const diceBox = document.getElementById('diceBox');
-        const rollBtn = document.getElementById('rollBtn');
-        const newGameBtn = document.getElementById('newGameBtn');
+(function(){
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const statusText = document.getElementById('statusText');
+  const dot = document.getElementById('dot');
+  const diceEl = document.getElementById('dice');
+  const rollBtn = document.getElementById('rollBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const hintEl = document.getElementById('hint');
 
-        // Game state
-        let players = ['red', 'green'];   // two players only (quick & shareable)
-        let currentPlayer = 0;            // index 0 = red, 1 = green
-        let diceValue = 1;
-        let gameWinner = null;            // null, 'red', 'green'
-        let rollAvailable = true;         // can roll?
-        let animationFrame = null;
-        let rolling = false;
+  const N = 15;                 // 15x15 grid
+  const CELL = cv.width / N;    // 40px
+  const MAX_POS = 56;           // final position
+  const START = { red: 0, green: 26 };
+  const PLAYERS = ['red', 'green'];
+  const COLORS = { red: '#e74c3c', green: '#2ecc71' };
 
-        // tokens: each player has 2 tokens (simplified but functional)
-        // token state: { pos: -1 }  -1 means at home (yard), 0..51 = main track, 52..56 = home column (final stretch)
-        // For win: both tokens must be at 56 (final)
-        const TOKENS_PER_PLAYER = 2;
-        const MAX_POS = 56; // pos 56 = finished (home)
+  // 52-cell main track (row, col) following the classic Ludo cross
+  const TRACK = [
+    // Red start: row 6, col 0 → move right along row 6
+    {r:6,c:0},{r:6,c:1},{r:6,c:2},{r:6,c:3},{r:6,c:4},{r:6,c:5},
+    // up column 6
+    {r:5,c:6},{r:4,c:6},{r:3,c:6},{r:2,c:6},{r:1,c:6},{r:0,c:6},
+    // across row 0
+    {r:0,c:7},{r:0,c:8},
+    // down column 8
+    {r:1,c:8},{r:2,c:8},{r:3,c:8},{r:4,c:8},{r:5,c:8},
+    // right along row 6
+    {r:6,c:9},{r:6,c:10},{r:6,c:11},{r:6,c:12},{r:6,c:13},{r:6,c:14},
+    // green start: row 8, col 14 → move down then left
+    {r:7,c:14},{r:8,c:14},
+    // left along row 8
+    {r:8,c:13},{r:8,c:12},{r:8,c:11},{r:8,c:10},{r:8,c:9},{r:8,c:8},
+    // down column 8
+    {r:9,c:8},{r:10,c:8},{r:11,c:8},{r:12,c:8},{r:13,c:8},{r:14,c:8},
+    // across row 14
+    {r:14,c:7},{r:14,c:6},
+    // up column 6
+    {r:13,c:6},{r:12,c:6},{r:11,c:6},{r:10,c:6},{r:9,c:6},
+    // left along row 8 to red start
+    {r:8,c:5},{r:8,c:4},{r:8,c:3},{r:8,c:2},{r:8,c:1},{r:8,c:0}
+  ];
+  // pad/trim to exactly 52
+  while (TRACK.length < 52) TRACK.push({r:6,c:0});
+  TRACK.length = 52;
 
-        // Red starts at index 0, green at 13 offset? We'll define a simplified track mapping.
-        // We'll use a linear track of 52 cells. Each player's start index:
-        // Red start index = 0, Green start index = 26 (opposite)
-        const START_INDEX = { red: 0, green: 26 };
+  // home stretch (5 cells each) toward center
+  const HOME_RED = [{r:7,c:1},{r:7,c:2},{r:7,c:3},{r:7,c:4},{r:7,c:5}];
+  const HOME_GREEN = [{r:7,c:13},{r:7,c:12},{r:7,c:11},{r:7,c:10},{r:7,c:9}];
 
-        // Home column starts at pos 52 for both (but different visual paths; simplified game logic)
-        // Token position: -1 = home yard; 0..51 track; 52..56 = home stretch (52 first step, 56 final)
-        // Win condition: both tokens reach pos 56.
+  let tokens = { red: [{pos:-1},{pos:-1}], green: [{pos:-1},{pos:-1}] };
+  let current = 0;
+  let dice = 1;
+  let rolled = false;     // has the current player rolled but not moved yet?
+  let busy = false;       // during dice animation
+  let winner = null;
 
-        // board cells (for visual: 15x15 grid)
-        const CELL_SIZE = canvas.width / 15;  // 40px
+  function trackPos(player, idx){  // idx = 0..51 (main track)
+    if (player === 'red') return TRACK[idx % 52];
+    return TRACK[(idx + 26) % 52];
+  }
+  function homePos(player, idx){   // idx = 0..4 (home stretch)
+    return player === 'red' ? HOME_RED[idx] : HOME_GREEN[idx];
+  }
+  function cellCenter(rc){ return { x: rc.c*CELL + CELL/2, y: rc.r*CELL + CELL/2 }; }
 
-        // ---- Helper functions ----
-        function getTokenPositions(player) {
-            return tokens[player];
+  // ---------- drawing ----------
+  function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+
+    // background grid
+    for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+      let col = '#2d4a57';
+      if ((r<6&&c<6)||(r<6&&c>8)||(r>8&&c<6)||(r>8&&c>8)) col='#1e353f';
+      if ((r>=6&&r<=8&&(c<6||c>8))||(c>=6&&c<=8&&(r<6||r>8))) col='#34606e';
+      if (r>=6&&r<=8&&c>=6&&c<=8) col='#3f6f7e';
+      ctx.fillStyle = col;
+      ctx.fillRect(c*CELL, r*CELL, CELL, CELL);
+      ctx.strokeStyle = '#1f3a42'; ctx.lineWidth = 1;
+      ctx.strokeRect(c*CELL, r*CELL, CELL, CELL);
+    }
+
+    // color the start cells
+    ctx.fillStyle = COLORS.red;   ctx.fillRect(0*CELL, 6*CELL, CELL, CELL);
+    ctx.fillStyle = COLORS.green; ctx.fillRect(14*CELL, 8*CELL, CELL, CELL);
+
+    // home stretch color tint
+    HOME_RED.forEach(h=>{ ctx.fillStyle='#e74c3c66'; ctx.fillRect(h.c*CELL,h.r*CELL,CELL,CELL); });
+    HOME_GREEN.forEach(h=>{ ctx.fillStyle='#2ecc7166'; ctx.fillRect(h.c*CELL,h.r*CELL,CELL,CELL); });
+
+    // center triangle-ish
+    ctx.fillStyle = '#ffd966'; ctx.font='bold 28px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('★', cv.width/2, cv.height/2);
+
+    // draw home yard tokens (not on board)
+    drawYard('red', 1, 1);
+    drawYard('green', 9, 9);
+
+    // draw tokens on track & home
+    PLAYERS.forEach(p=>{
+      tokens[p].forEach((t, i)=>{
+        if (t.pos === -1) return; // yard drawn separately
+        let rc;
+        if (t.pos < 52) rc = trackPos(p, t.pos);
+        else rc = homePos(p, t.pos - 52);
+        const {x,y} = cellCenter(rc);
+        drawToken(x, y, p, i, t.pos === MAX_POS);
+      });
+    });
+
+    // highlight movable tokens
+    if (rolled && !winner && !busy){
+      const movable = getMovable();
+      movable.forEach(i=>{
+        const p = PLAYERS[current];
+        const t = tokens[p][i];
+        let rc;
+        if (t.pos === -1){
+          const base = p==='red' ? {r:1,c:1} : {r:10,c:10};
+          const off = i===0 ? {r:1,c:1} : {r:3,c:3};
+          rc = {r:base.r+off.r, c:base.c+off.c};
+        } else if (t.pos < 52) rc = trackPos(p, t.pos);
+        else rc = homePos(p, t.pos - 52);
+        const {x,y} = cellCenter(rc);
+        ctx.beginPath();
+        ctx.arc(x,y, CELL*0.48, 0, Math.PI*2);
+        ctx.strokeStyle = '#ffd966'; ctx.lineWidth = 4;
+        ctx.stroke();
+      });
+    }
+  }
+
+  function drawYard(player, baseR, baseC){
+    const color = COLORS[player];
+    tokens[player].forEach((t, i)=>{
+      if (t.pos !== -1) return;
+      const off = i===0 ? {r:1,c:1} : {r:3,c:3};
+      const rc = {r: baseR+off.r, c: baseC+off.c};
+      const {x,y} = cellCenter(rc);
+      drawToken(x, y, player, i, false);
+    });
+  }
+
+  function drawToken(x, y, player, idx, finished){
+    ctx.beginPath();
+    ctx.arc(x, y, CELL*0.36, 0, Math.PI*2);
+    ctx.fillStyle = COLORS[player];
+    ctx.shadowColor = COLORS[player];
+    ctx.shadowBlur = finished ? 25 : 10;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(idx+1, x, y);
+  }
+
+  // ---------- game logic ----------
+  function canMove(i){
+    if (winner) return false;
+    const p = PLAYERS[current];
+    const t = tokens[p][i];
+    if (t.pos === MAX_POS) return false;
+    if (t.pos === -1) return dice === 6;
+    return t.pos + dice <= MAX_POS;
+  }
+  function getMovable(){
+    const out = [];
+    for (let i=0;i<2;i++) if (canMove(i)) out.push(i);
+    return out;
+  }
+
+  function doMove(i){
+    if (!rolled || winner || busy) return;
+    const p = PLAYERS[current];
+    const t = tokens[p][i];
+    if (!canMove(i)) return;
+
+    if (t.pos === -1) t.pos = START[p];
+    else t.pos += dice;
+
+    // check win
+    if (tokens[p].every(x=>x.pos === MAX_POS)){
+      winner = p;
+      rolled = false;
+      updateUI();
+      draw();
+      return;
+    }
+
+    // pass turn
+    current = (current+1)%2;
+    rolled = false;
+    dice = 1;
+    setDiceFace(1);
+    updateUI();
+    draw();
+  }
+
+  function rollDice(){
+    if (rolled || winner || busy) return;
+    busy = true;
+    rollBtn.disabled = true;
+    diceEl.classList.add('rolling');
+    let count = 0;
+    const iv = setInterval(()=>{
+      setDiceFace(Math.floor(Math.random()*6)+1);
+      count++;
+      if (count > 7){
+        clearInterval(iv);
+        diceEl.classList.remove('rolling');
+        dice = Math.floor(Math.random()*6)+1;
+        setDiceFace(dice);
+        rolled = true;
+        busy = false;
+
+        const movable = getMovable();
+        if (movable.length === 0){
+          // no moves — auto-pass after brief pause
+          hintEl.innerText = `Rolled ${dice}. No moves available — passing turn…`;
+          setTimeout(()=>{
+            if (rolled && !winner){
+              current = (current+1)%2;
+              rolled = false;
+              dice = 1;
+              setDiceFace(1);
+              updateUI();
+              draw();
+            }
+          }, 700);
+        } else if (movable.length === 1){
+          // auto-move if only one option
+          hintEl.innerText = `Rolled ${dice}. Moving…`;
+          setTimeout(()=>doMove(movable[0]), 350);
+        } else {
+          hintEl.innerText = `Rolled ${dice}. Click a highlighted token to move.`;
+          rollBtn.disabled = true;
         }
+        draw();
+      }
+    }, 60);
+  }
 
-        // Tokens store positions
-        let tokens = {
-            red: [{ pos: -1 }, { pos: -1 }],
-            green: [{ pos: -1 }, { pos: -1 }]
-        };
+  function setDiceFace(v){
+    diceEl.innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][v-1];
+  }
 
-        // Reset game
-        function resetGame() {
-            tokens = {
-                red: [{ pos: -1 }, { pos: -1 }],
-                green: [{ pos: -1 }, { pos: -1 }]
-            };
-            currentPlayer = 0;
-            diceValue = 1;
-            gameWinner = null;
-            rollAvailable = true;
-            updateTurnDisplay();
-            setDiceFace(1);
-            drawBoard();
-        }
+  function updateUI(){
+    if (winner){
+      statusText.innerText = `${winner.toUpperCase()} WINS!`;
+      dot.style.background = '#f1c40f';
+      rollBtn.disabled = true;
+      hintEl.innerText = 'Click "New Game" to play again.';
+      return;
+    }
+    statusText.innerText = `${PLAYERS[current].charAt(0).toUpperCase()+PLAYERS[current].slice(1)}'s turn — roll the dice`;
+    dot.style.background = COLORS[PLAYERS[current]];
+    rollBtn.disabled = rolled || busy;
+    if (!rolled){
+      hintEl.innerText = 'Roll the dice. A 6 brings a token out of home.';
+    }
+  }
 
-        // Update UI turn indicator
-        function updateTurnDisplay() {
-            if (gameWinner) {
-                turnDot.style.background = '#f1c40f';
-                turnText.innerText = `${gameWinner.toUpperCase()} WINS!`;
-                return;
-            }
-            const player = players[currentPlayer];
-            const colorMap = { red: '#e74c3c', green: '#2ecc71' };
-            turnDot.style.background = colorMap[player];
-            turnText.innerText = `${player.charAt(0).toUpperCase() + player.slice(1)}'s turn`;
-        }
+  // ---------- input ----------
+  cv.addEventListener('click', (e)=>{
+    if (!rolled || winner || busy) return;
+    const r = cv.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * (cv.width/r.width);
+    const my = (e.clientY - r.top) * (cv.height/r.height);
+    const movable = getMovable();
+    const p = PLAYERS[current];
 
-        // Set dice face (unicode)
-        function setDiceFace(value) {
-            const faces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-            diceBox.innerText = faces[value - 1] || '⚀';
-        }
+    for (const i of movable){
+      const t = tokens[p][i];
+      let rc;
+      if (t.pos === -1){
+        const base = p==='red' ? {r:1,c:1} : {r:10,c:10};
+        const off = i===0 ? {r:1,c:1} : {r:3,c:3};
+        rc = {r:base.r+off.r, c:base.c+off.c};
+      } else if (t.pos < 52) rc = trackPos(p, t.pos);
+      else rc = homePos(p, t.pos-52);
+      const {x,y} = cellCenter(rc);
+      if (Math.hypot(mx-x, my-y) < CELL*0.7){
+        doMove(i);
+        return;
+      }
+    }
+  });
 
-        // Roll dice (random 1-6)
-        function rollDice() {
-            if (gameWinner || !rollAvailable || rolling) return;
-            rolling = true;
-            rollBtn.disabled = true;
-            diceBox.classList.add('rolling');
+  rollBtn.addEventListener('click', rollDice);
 
-            // short animation
-            let count = 0;
-            const interval = setInterval(() => {
-                const temp = Math.floor(Math.random() * 6) + 1;
-                setDiceFace(temp);
-                count++;
-                if (count > 8) {
-                    clearInterval(interval);
-                    diceBox.classList.remove('rolling');
-                    // final value
-                    diceValue = Math.floor(Math.random() * 6) + 1;
-                    setDiceFace(diceValue);
-                    rolling = false;
-                    rollAvailable = false;   // must move now
-                    rollBtn.disabled = true;
-                    drawBoard();             // highlight movable tokens
-                }
-            }, 60);
-        }
+  resetBtn.addEventListener('click', ()=>{
+    tokens = { red:[{pos:-1},{pos:-1}], green:[{pos:-1},{pos:-1}] };
+    current = 0; dice = 1; rolled = false; busy = false; winner = null;
+    diceEl.classList.remove('rolling');
+    setDiceFace(1);
+    updateUI();
+    draw();
+  });
 
-        // Check if a token can move with current dice
-        function canMove(player, tokenIndex) {
-            if (gameWinner) return false;
-            const token = tokens[player][tokenIndex];
-            if (token.pos === MAX_POS) return false; // already finished
-            if (token.pos === -1) {
-                // from yard: only move if dice is 6 (classic) OR we allow any? Quick game: only 6 to start
-                return diceValue === 6;
-            }
-            // on track: cannot overshoot final
-            const newPos = token.pos + diceValue;
-            // token.pos between 0 and 51 track, or 52..55 home stretch, max 56
-            if (token.pos >= 52) {
-                // home stretch (52..55), cannot exceed 56
-                return token.pos + diceValue <= MAX_POS;
-            }
-            // main track: moving to home stretch? we treat as just addition, but max 56
-            // but if token.pos <=51 and pos+dice >56? should not happen because max 51+6=57 >56, so cap? we restrict
-            if (token.pos + diceValue > MAX_POS && token.pos < 52) {
-                // if overshoot, not allowed (simplify)
-                return false;
-            }
-            return true;
-        }
-
-        // Get all movable tokens for current player
-        function getMovableTokens() {
-            const player = players[currentPlayer];
-            const movable = [];
-            for (let i = 0; i < TOKENS_PER_PLAYER; i++) {
-                if (canMove(player, i)) movable.push(i);
-            }
-            return movable;
-        }
-
-        // Move token (if valid)
-        function moveToken(tokenIndex) {
-            if (gameWinner || rollAvailable) return; // must have rolled and not yet moved
-            const player = players[currentPlayer];
-            if (!canMove(player, tokenIndex)) return;
-
-            const token = tokens[player][tokenIndex];
-            if (token.pos === -1) {
-                // leave yard: place on start index
-                token.pos = START_INDEX[player];
-            } else {
-                token.pos += diceValue;
-            }
-
-            // Check win condition: both tokens at MAX_POS
-            if (tokens[player].every(t => t.pos === MAX_POS)) {
-                gameWinner = player;
-                rollAvailable = false;
-                rollBtn.disabled = true;
-                updateTurnDisplay();
-                drawBoard();
-                return;
-            }
-
-            // switch turn, reset dice availability
-            currentPlayer = (currentPlayer + 1) % players.length;
-            rollAvailable = true;
-            rollBtn.disabled = false;
-            updateTurnDisplay();
-            drawBoard();
-        }
-
-        // ----- Drawing the board (simplified but visually appealing) -----
-        function drawBoard() {
-            if (animationFrame) cancelAnimationFrame(animationFrame);
-            animationFrame = requestAnimationFrame(() => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                // Draw grid background (15x15)
-                for (let row = 0; row < 15; row++) {
-                    for (let col = 0; col < 15; col++) {
-                        // Determine cell color
-                        let fillColor = '#2d4a57';
-                        // Home yards corners
-                        if ((row < 6 && col < 6) || (row < 6 && col > 8) || (row > 8 && col < 6) || (row > 8 && col > 8)) {
-                            fillColor = '#1e353f';
-                        }
-                        // path areas (simplified cross)
-                        if (row >= 6 && row <= 8 && (col < 6 || col > 8)) fillColor = '#34606e';
-                        if (col >= 6 && col <= 8 && (row < 6 || row > 8)) fillColor = '#34606e';
-
-                        // center area
-                        if (row >= 6 && row <= 8 && col >= 6 && col <= 8) fillColor = '#3f6f7e';
-
-                        // start positions highlight
-                        if (row === 6 && col === 0) fillColor = '#e74c3c'; // red start
-                        if (row === 8 && col === 14) fillColor = '#2ecc71'; // green start
-
-                        ctx.fillStyle = fillColor;
-                        ctx.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE - 0.5, CELL_SIZE - 0.5);
-                        ctx.strokeStyle = '#1f3a42';
-                        ctx.lineWidth = 0.8;
-                        ctx.strokeRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                    }
-                }
-
-                // Draw home yard tokens (circles)
-                // Red home (top-left)
-                drawHomeYard(0, 0, '#e74c3c', tokens.red);
-                // Green home (bottom-right)
-                drawHomeYard(9, 9, '#2ecc71', tokens.green);
-
-                // Draw main track tokens (only those on track)
-                drawTokensOnTrack();
-
-                // Draw dice / movable highlight or winner message
-                if (gameWinner) {
-                    ctx.font = 'bold 36px "Segoe UI", sans-serif';
-                    ctx.fillStyle = '#ffd966';
-                    ctx.shadowColor = '#000';
-                    ctx.shadowBlur = 20;
-                    ctx.fillText('🏆', 260, 320);
-                    ctx.shadowBlur = 0;
-                } else {
-                    // highlight movable tokens after roll
-                    if (!rollAvailable && !gameWinner) {
-                        const movable = getMovableTokens();
-                        movable.forEach(idx => {
-                            const player = players[currentPlayer];
-                            const token = tokens[player][idx];
-                            let x, y;
-                            if (token.pos === -1) {
-                                // yard coordinates
-                                const [baseRow, baseCol] = player === 'red' ? [1, 1] : [10, 10];
-                                const offsets = [{x:1, y:1}, {x:3, y:3}];
-                                const off = offsets[idx];
-                                x = (baseCol + off.x) * CELL_SIZE + CELL_SIZE/2;
-                                y = (baseRow + off.y) * CELL_SIZE + CELL_SIZE/2;
-                            } else {
-                                [x, y] = getTrackCoords(player, token.pos);
-                            }
-                            ctx.beginPath();
-                            ctx.arc(x, y, CELL_SIZE * 0.45, 0, 2 * Math.PI);
-                            ctx.fillStyle = '#f1c40f';
-                            ctx.shadowBlur = 15;
-                            ctx.shadowColor = '#f1c40f';
-                            ctx.fill();
-                            ctx.shadowBlur = 0;
-                        });
-                    }
-                }
-                // draw small turn indicator on board maybe not needed.
-            });
-        }
-
-        // Draw home yard tokens
-        function drawHomeYard(baseRow, baseCol, color, playerTokens) {
-            for (let i = 0; i < playerTokens.length; i++) {
-                if (playerTokens[i].pos !== -1) continue;
-                const offsets = [{x:1, y:1}, {x:3, y:3}];
-                const off = offsets[i];
-                const x = (baseCol + off.x) * CELL_SIZE + CELL_SIZE/2;
-                const y = (baseRow + off.y) * CELL_SIZE + CELL_SIZE/2;
-                ctx.beginPath();
-                ctx.arc(x, y, CELL_SIZE * 0.4, 0, 2 * Math.PI);
-                ctx.fillStyle = color;
-                ctx.shadowBlur = 12;
-                ctx.shadowColor = color;
-                ctx.fill();
-                ctx.strokeStyle = '#ffffff90';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-                // number
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 16px "Segoe UI"';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(i+1, x, y);
-            }
-        }
-
-        // Map track position to canvas coordinates (simplified path)
-        function getTrackCoords(player, pos) {
-            // We'll create a simple circular-ish path for each player: red starts at (6,0) row6 col0.
-            // But we want a more or less pleasant visual: define a list of (row, col) along path.
-            // For simplicity and quick implementation, we generate a path that looks like ludo track.
-            // pos 0..51
-            // Red: start at row6 col0 -> go right to col6 -> up to row0 -> right to col8? 
-            // I'll craft a simple but recognizable path.
-
-            // Define a common track (for red) as array of {row, col}
-            // Then for green, shift by 26 steps? Actually rotate and use same coords.
-            if (!trackCoordsRed) buildTrackCoords();
-
-            let index = pos;
-            if (player === 'green') {
-                // green uses same track but offset by 26 cells? We'll rotate index
-                index = (pos + 26) % 52;
-                // but also need to mirror visually? We'll use same array but starting point green is (8,14)
-                // to keep it simple, we'll use the same track but green start is at opposite side.
-            }
-            if (pos >= 52) {
-                // home stretch: for red towards center (row7,col7), green towards center as well.
-                // we'll place them near center
-                const step = pos - 52; // 0..4 (since 52->56)
-                if (player === 'red') {
-                    return [ (7 - step * 0.3) * CELL_SIZE + CELL_SIZE/2, (7 - step * 0.3) * CELL_SIZE + CELL_SIZE/2 ];
-                } else {
-                    return [ (7 + step * 0.3) * CELL_SIZE + CELL_SIZE/2, (7 + step * 0.3) * CELL_SIZE + CELL_SIZE/2 ];
-                }
-            }
-            const coord = trackCoordsRed[index % 52];
-            return [ coord.col * CELL_SIZE + CELL_SIZE/2, coord.row * CELL_SIZE + CELL_SIZE/2 ];
-        }
-
-        // Build a simplified track (52 cells)
-        let trackCoordsRed = null;
-        function buildTrackCoords() {
-            const coords = [];
-            // start at row6, col0 (red start)
-            // go right: row6, col0..5
-            for (let c = 0; c <= 5; c++) coords.push({row: 6, col: c});
-            // go up: row5..0, col6
-            for (let r = 5; r >= 0; r--) coords.push({row: r, col: 6});
-            // go right: row0, col7..8
-            coords.push({row: 0, col: 7});
-            coords.push({row: 0, col: 8});
-            // go down: row1..5, col8
-            for (let r = 1; r <= 5; r++) coords.push({row: r, col: 8});
-            // go right: row6, col9..14
-            for (let c = 9; c <= 14; c++) coords.push({row: 6, col: c});
-            // go down: row7..8? actually green start at row8 col14
-            coords.push({row: 7, col: 14});
-            coords.push({row: 8, col: 14});
-            // go left: row8, col13..8
-            for (let c = 13; c >= 8; c--) coords.push({row: 8, col: c});
-            // go down: row9..14, col8
-            for (let r = 9; r <= 14; r++) coords.push({row: r, col: 8});
-            // go left: row14, col7..6
-            coords.push({row: 14, col: 7});
-            coords.push({row: 14, col: 6});
-            // go up: row13..9, col6
-            for (let r = 13; r >= 9; r--) coords.push({row: r, col: 6});
-            // go left: row8, col5..0
-            for (let c = 5; c >= 0; c--) coords.push({row: 8, col: c});
-            // go up: row7, col0? Actually red start is row6 col0, we need 52. Let's check length.
-            // if we have extra, trim or add. We'll adjust.
-            while (coords.length < 52) {
-                // fill with dummy near start
-                coords.push({row: 6, col: 1});
-            }
-            trackCoordsRed = coords.slice(0, 52);
-        }
-
-        // Draw tokens on track
-        function drawTokensOnTrack() {
-            ['red', 'green'].forEach(player => {
-                const color = player === 'red' ? '#e74c3c' : '#2ecc71';
-                tokens[player].forEach((token, idx) => {
-                    if (token.pos === -1) return; // yard tokens drawn separately
-                    let x, y;
-                    if (token.pos >= 0) {
-                        [x, y] = getTrackCoords(player, token.pos);
-                    } else return;
-                    ctx.beginPath();
-                    ctx.arc(x, y, CELL_SIZE * 0.35, 0, 2 * Math.PI);
-                    ctx.fillStyle = color;
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = color;
-                    ctx.fill();
-                    ctx.strokeStyle = '#ffffffd0';
-                    ctx.lineWidth = 2.5;
-                    ctx.stroke();
-                    ctx.shadowBlur = 0;
-                    // token number
-                    ctx.fillStyle = 'white';
-                    ctx.font = 'bold 14px "Segoe UI"';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(idx+1, x, y);
-                });
-            });
-        }
-
-        // Canvas click handler: try to move a token
-        canvas.addEventListener('click', (e) => {
-            if (gameWinner || rollAvailable || rolling) return; // can't move now
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const mouseX = (e.clientX - rect.left) * scaleX;
-            const mouseY = (e.clientY - rect.top) * scaleY;
-
-            const movable = getMovableTokens();
-            if (movable.length === 0) {
-                // no moves, pass turn
-                currentPlayer = (currentPlayer + 1) % players.length;
-                rollAvailable = true;
-                rollBtn.disabled = false;
-                updateTurnDisplay();
-                drawBoard();
-                return;
-            }
-
-            const player = players[currentPlayer];
-
-            // Check if clicked near any movable token
-            for (let idx of movable) {
-                const token = tokens[player][idx];
-                let x, y;
-                if (token.pos === -1) {
-                    const [baseRow, baseCol] = player === 'red' ? [1, 1] : [10, 10];
-                    const offsets = [{x:1, y:1}, {x:3, y:3}];
-                    const off = offsets[idx];
-                    x = (baseCol + off.x) * CELL_SIZE + CELL_SIZE/2;
-                    y = (baseRow + off.y) * CELL_SIZE + CELL_SIZE/2;
-                } else {
-                    [x, y] = getTrackCoords(player, token.pos);
-                }
-                const dist = Math.hypot(mouseX - x, mouseY - y);
-                if (dist < CELL_SIZE * 0.7) {
-                    moveToken(idx);
-                    return;
-                }
-            }
-            // if clicked but no token, do nothing (or could auto-move if only one movable? we'll keep)
-        });
-
-        // Auto-move if only one movable token after roll (click or automatically? we'll let user click, but convenience: if only one movable, we could auto after 200ms)
-        // but let's keep it simple, user clicks token.
-
-        // Roll button
-        rollBtn.addEventListener('click', () => {
-            if (gameWinner || !rollAvailable || rolling) return;
-            rollDice();
-        });
-
-        // New game button
-        newGameBtn.addEventListener('click', () => {
-            resetGame();
-            if (rolling) {
-                rolling = false;
-                diceBox.classList.remove('rolling');
-            }
-            rollBtn.disabled = false;
-            drawBoard();
-        });
-
-        // initialize game
-        function init() {
-            buildTrackCoords();
-            resetGame();
-            updateTurnDisplay();
-            setDiceFace(1);
-            drawBoard();
-            // Also check if no moves possible and auto-pass? we can add a check after roll.
-        }
-
-        // Override drawBoard to also check for pass if no moves available and it's not rolling and not rollAvailable
-        const originalDrawBoard = drawBoard;
-        drawBoard = function() {
-            originalDrawBoard.call(this);
-            // after draw, if it's not rollAvailable (player rolled) and not gameWinner and not rolling, check if any moves.
-            if (!rollAvailable && !gameWinner && !rolling) {
-                const movable = getMovableTokens();
-                if (movable.length === 0) {
-                    // No moves, pass turn automatically after short delay
-                    setTimeout(() => {
-                        if (!rollAvailable && !gameWinner && !rolling && getMovableTokens().length === 0) {
-                            currentPlayer = (currentPlayer + 1) % players.length;
-                            rollAvailable = true;
-                            rollBtn.disabled = false;
-                            updateTurnDisplay();
-                            drawBoard();
-                        }
-                    }, 400);
-                }
-            }
-        };
-
-        init();
-    })();
+  // init
+  setDiceFace(1);
+  updateUI();
+  draw();
+})();
 </script>
 </body>
 </html>
